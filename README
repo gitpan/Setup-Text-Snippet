@@ -1,0 +1,25 @@
+NAME
+    Setup::Text::Snippet - Setup text snippet in a string/file
+
+VERSION
+    version 0.01
+
+DESCRIPTION
+    Reserved for the general case of Setup::Text::Snippet::WithID.
+
+    You might want to use Setup::Text::Snippet::WithID for now.
+
+SEE ALSO
+    Setup::Text::Snippet::WithID
+
+    Other modules in Setup:: namespace.
+
+AUTHOR
+    Steven Haryanto <stevenharyanto@gmail.com>
+
+COPYRIGHT AND LICENSE
+    This software is copyright (c) 2011 by Steven Haryanto.
+
+    This is free software; you can redistribute it and/or modify it under
+    the same terms as the Perl 5 programming language system itself.
+
