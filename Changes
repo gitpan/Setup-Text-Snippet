@@ -1,5 +1,20 @@
 Revision history for Setup-Text-Snippet
 
+0.02    2011-04-30
+
+        [BUG FIXES]
+
+        - Fixed bug on good_pattern.
+
+        - Don't autoappend newline on empty file.
+
+        [ETC]
+
+        - Autotrim one-line snippet content.
+
+        - Add tests.
+
+
 0.01    2011-04-29
 
-        - First release.
+        - First release (minimum tests).

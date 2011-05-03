@@ -1,6 +1,6 @@
 package Setup::Text::Snippet;
 BEGIN {
-  $Setup::Text::Snippet::VERSION = '0.01';
+  $Setup::Text::Snippet::VERSION = '0.02';
 }
 # ABSTRACT: Setup text snippet in a string/file
 
@@ -24,7 +24,7 @@ Setup::Text::Snippet - Setup text snippet in a string/file
 
 =head1 VERSION
 
-version 0.01
+version 0.02
 
 =head1 DESCRIPTION
 

@@ -1,6 +1,6 @@
 package Setup::Text::Snippet::WithID;
 BEGIN {
-  $Setup::Text::Snippet::WithID::VERSION = '0.01';
+  $Setup::Text::Snippet::WithID::VERSION = '0.02';
 }
 # ABSTRACT: Setup text snippet (with comment containing ID) in file
 
@@ -287,7 +287,13 @@ sub setup_snippet_with_id {
 
             my $content = $step->[1] // $args{content};
             my $is_multi = $content =~ /\R/;
-            if ($is_multi) { $content =~ s/\R\z//; $content .= "\n" }
+            if ($is_multi) {
+                # autoappend newline
+                $content =~ s/\R\z//; $content .= "\n";
+            } else {
+                # autotrim one-line
+                $content =~ s/\s+\z//;
+            }
 
             if (!(-f $file)) {
                 if ($step->[0] eq 'insert') {
@@ -335,9 +341,10 @@ sub setup_snippet_with_id {
                         $log->debugf(
                             "File contains good_pattern %s, so we don't need ".
                                 "to insert snippet", $good_pattern);
+                    } else {
+                        $log->trace("nok: snippet doesn't exist");
+                        $do_insert++;
                     }
-                    $log->trace("nok: snippet doesn't exist");
-                    $do_insert++;
                 }
             }
 
@@ -359,7 +366,8 @@ sub setup_snippet_with_id {
                 } elsif ($top_style) {
                     $str = $snippet . $str;
                 } else {
-                    $str .= ($str =~ /\R\z/ ? "" : "\n") . $snippet;
+                    $str .= ($str =~ /\R\z/ || !length($str) ? "" : "\n") .
+                        $snippet;
                 }
             }
 
@@ -415,7 +423,7 @@ Setup::Text::Snippet::WithID - Setup text snippet (with comment containing ID) i
 
 =head1 VERSION
 
-version 0.01
+version 0.02
 
 =head1 SYNOPSIS
 
@@ -636,6 +644,11 @@ pattern.
 If a snippet is removed due to should_exist=>0, its position is not recorded.
 Thus the undo step will reinsert snippet according to replace_pattern/top_style
 instead of the original position.
+
+The undo also currently doesn't record whether newline was autoappended on the
+file, so it doesn't restore that.
+
+TODO: Restore attrs.
 
 =head1 SEE ALSO
 
