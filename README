@@ -2,7 +2,7 @@ NAME
     Setup::Text::Snippet - Setup text snippet in a string/file
 
 VERSION
-    version 0.03
+    version 0.04
 
 DESCRIPTION
     Reserved for the general case of Setup::Text::Snippet::WithID.

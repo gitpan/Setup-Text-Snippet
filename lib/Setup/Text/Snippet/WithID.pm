@@ -1,6 +1,6 @@
 package Setup::Text::Snippet::WithID;
 BEGIN {
-  $Setup::Text::Snippet::WithID::VERSION = '0.03';
+  $Setup::Text::Snippet::WithID::VERSION = '0.04';
 }
 # ABSTRACT: Setup text snippet (with comment containing ID) in file
 
@@ -316,11 +316,13 @@ sub setup_snippet_with_id {
                     $str =~ /$multi_line_pattern/ && ($typ = 'multi')) {
                 $ct = $1;
                 if ($step->[0] eq 'insert' && $ct ne $content) {
-                    $log->infof("nok: snippet content is >>>%s<<< but needs ".
-                                    "to be >>>%s<<<", $ct, $content);
+                    $log->infof("nok: file %s: snippet content is >>>%s<<< ".
+                                    "but needs to be >>>%s<<<",
+                                $file, $ct, $content);
                     $do_insert++;
                 } elsif ($step->[0] eq 'remove') {
-                    $log->info("nok: snippet exists");
+                    $log->info("nok: file $file: snippet exists when ".
+                                   "it should be removed");
                 } else {
                     next STEP;
                 }
@@ -341,7 +343,7 @@ sub setup_snippet_with_id {
                             "File contains good_pattern %s, so we don't need ".
                                 "to insert snippet", $good_pattern);
                     } else {
-                        $log->info("nok: snippet doesn't exist");
+                        $log->info("nok: file $file: snippet doesn't exist");
                         $do_insert++;
                     }
                 }
@@ -422,7 +424,7 @@ Setup::Text::Snippet::WithID - Setup text snippet (with comment containing ID) i
 
 =head1 VERSION
 
-version 0.03
+version 0.04
 
 =head1 SYNOPSIS
 
