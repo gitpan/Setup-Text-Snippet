@@ -1,8 +1,4 @@
 package Setup::Text::Snippet::WithID;
-BEGIN {
-  $Setup::Text::Snippet::WithID::VERSION = '0.04';
-}
-# ABSTRACT: Setup text snippet (with comment containing ID) in file
 
 use 5.010;
 use strict;
@@ -14,6 +10,8 @@ use File::Slurp;
 require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(setup_snippet_with_id);
+
+our $VERSION = '0.05'; # VERSION
 
 our %SPEC;
 
@@ -414,17 +412,20 @@ sub setup_snippet_with_id {
     return [$changed ? 200:304, $changed?"OK":"Nothing done", $data, $meta];
 }
 
+1;
+# ABSTRACT: Setup text snippet (with comment containing ID) in file_
 
 
+__END__
 =pod
 
 =head1 NAME
 
-Setup::Text::Snippet::WithID - Setup text snippet (with comment containing ID) in file
+Setup::Text::Snippet::WithID - Setup text snippet (with comment containing ID) in file_
 
 =head1 VERSION
 
-version 0.04
+version 0.05
 
 =head1 SYNOPSIS
 
@@ -470,7 +471,7 @@ This module is part of the Setup modules family.
 
 This module uses L<Log::Any> logging framework.
 
-This module's functions have L<Sub::Spec> specs.
+This module has L<Rinci> metadata.
 
 =head1 THE SETUP MODULES FAMILY
 
@@ -661,13 +662,10 @@ Steven Haryanto <stevenharyanto@gmail.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Steven Haryanto.
+This software is copyright (c) 2012 by Steven Haryanto.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-
-
-__END__
 
