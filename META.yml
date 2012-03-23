@@ -22,4 +22,4 @@ requires:
 resources:
   homepage: http://search.cpan.org/dist/Setup-Text-Snippet/
   repository: http://github.com/sharyanto/perl-Setup-Text-Snippet
-version: 0.05
+version: 0.06

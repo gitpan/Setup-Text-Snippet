@@ -11,7 +11,7 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(setup_snippet_with_id);
 
-our $VERSION = '0.05'; # VERSION
+our $VERSION = '0.06'; # VERSION
 
 our %SPEC;
 
@@ -269,6 +269,14 @@ sub setup_snippet_with_id {
     return [400, "Invalid steps, must be an array"]
         unless $steps && ref($steps) eq 'ARRAY';
 
+    # known steps:
+    #
+    # - ['remove', CONTENT] ; CONTENT is original content before replaced, can
+    #   be undef (< 0.06). if an existing snippet is removed, it will contain
+    #   the comment too.
+    #
+    # - ['insert', CONTENT] ; CONTENT is original content before replaced
+
     # perform the steps
     my $rollback;
     my $undo_steps = [];
@@ -282,14 +290,14 @@ sub setup_snippet_with_id {
 
         if ($step->[0] eq 'insert' || $step->[0] eq 'remove') {
 
-            my $content = $step->[1] // $args{content};
-            my $is_multi = $content =~ /\R/;
+            my $des_ct = $step->[1] // $args{content}; # desired content
+            my $is_multi = $des_ct =~ /\R/;
             if ($is_multi) {
                 # autoappend newline
-                $content =~ s/\R\z//; $content .= "\n";
+                $des_ct =~ s/\R\z//; $des_ct .= "\n";
             } else {
                 # autotrim one-line
-                $content =~ s/\s+\z//;
+                $des_ct =~ s/\s+\z//;
             }
 
             if (!(-f $file)) {
@@ -307,30 +315,25 @@ sub setup_snippet_with_id {
                 goto CHECK_ERR;
             }
             my $typ;
-            my $ct;
-            my $do_remove;
-            my $do_insert;
+            my $or_ct; # original content before we replace/remove
+            my ($should_remove, $removed);
+            my ($should_insert, $inserted);
             if ($str =~ /$one_line_pattern/ && ($typ = 'oneline') ||
                     $str =~ /$multi_line_pattern/ && ($typ = 'multi')) {
-                $ct = $1;
-                if ($step->[0] eq 'insert' && $ct ne $content) {
+                my $es_ct = $1; # existing snippet's content
+                if ($step->[0] eq 'insert' && $es_ct ne $des_ct) {
                     $log->infof("nok: file %s: snippet content is >>>%s<<< ".
                                     "but needs to be >>>%s<<<",
-                                $file, $ct, $content);
-                    $do_insert++;
+                                $file, $es_ct, $des_ct);
+                    $should_insert++;
                 } elsif ($step->[0] eq 'remove') {
                     $log->info("nok: file $file: snippet exists when ".
                                    "it should be removed");
+                    $should_remove++;
                 } else {
                     next STEP;
                 }
                 return [200, "dry run"] if $dry_run;
-                $do_remove++;
-                if ($typ eq 'oneline') {
-                    $str =~ s/$one_line_pattern//;
-                } else {
-                    $str =~ s/$multi_line_pattern//;
-                }
             } else {
                 if ($step->[0] eq 'remove') {
                     # file already lacks snippet
@@ -342,35 +345,56 @@ sub setup_snippet_with_id {
                                 "to insert snippet", $good_pattern);
                     } else {
                         $log->info("nok: file $file: snippet doesn't exist");
-                        $do_insert++;
+                        $should_insert++;
                     }
                 }
             }
 
-            if ($do_insert) {
+            if ($should_remove) {
+                if ($typ eq 'oneline') {
+                    $str =~ s!($one_line_pattern)!$step->[1] // ""!e;
+                } else {
+                    $str =~ s!($multi_line_pattern)!$step->[1] // ""!e;
+                }
+                $or_ct = $1;
+                $removed++;
+            }
+
+            if ($should_insert) {
                 return [200, "dry run"] if $dry_run;
                 my $snippet;
                 if ($is_multi) {
                     $snippet = join(
                         "",
                         $begin_comment, "\n",
-                        $content,
+                        $des_ct,
                         $end_comment, "\n"
                     );
                 } else {
-                    $snippet = $content . $one_line_comment . "\n";
+                    $snippet = $des_ct . $one_line_comment . "\n";
                 }
-                if ($replace_pattern && $str =~ /$replace_pattern/) {
+                if ($replace_pattern && $str =~ /($replace_pattern)/) {
+                    $or_ct = $1;
                     $str =~ s/$replace_pattern/$snippet/;
+                    $log->errf("TMP:0");
+                } elsif ($str =~ /($one_line_pattern)/) {
+                    $or_ct = $1;
+                    $str =~ s/($one_line_pattern)/$snippet/;
+                } elsif ($str =~ /($multi_line_pattern)/) {
+                    $or_ct = $1;
+                    $str =~ s/$multi_line_pattern/$snippet/;
                 } elsif ($top_style) {
+                    $or_ct = "";
                     $str = $snippet . $str;
                 } else {
+                    $or_ct = "";
                     $str .= ($str =~ /\R\z/ || !length($str) ? "" : "\n") .
                         $snippet;
                 }
+                $inserted++;
             }
 
-            if ($do_insert || $do_remove) {
+            if ($inserted || $removed) {
                 $log->tracef("Updating file %s ...", $file);
                 if (!write_file($file, {err_mode=>'quiet', atomic=>1}, $str)) {
                     $err = "Can't write file: $!";
@@ -378,10 +402,10 @@ sub setup_snippet_with_id {
                 }
                 $changed++;
 
-                if ($step->[0] eq 'remove') {
-                    unshift @$undo_steps, ['insert', $ct];
+                if ($removed) {
+                    unshift @$undo_steps, ['insert', $or_ct];
                 } else {
-                    unshift @$undo_steps, ['remove'];
+                    unshift @$undo_steps, ['remove', $or_ct];
                 }
             }
 
@@ -413,7 +437,7 @@ sub setup_snippet_with_id {
 }
 
 1;
-# ABSTRACT: Setup text snippet (with comment containing ID) in file_
+# ABSTRACT: Setup text snippet (with comment containing ID) in file
 
 
 __END__
@@ -421,11 +445,11 @@ __END__
 
 =head1 NAME
 
-Setup::Text::Snippet::WithID - Setup text snippet (with comment containing ID) in file_
+Setup::Text::Snippet::WithID - Setup text snippet (with comment containing ID) in file
 
 =head1 VERSION
 
-version 0.05
+version 0.06
 
 =head1 SYNOPSIS
 
@@ -478,168 +502,6 @@ This module has L<Rinci> metadata.
 I use the C<Setup::> namespace for the Setup modules family. See C<Setup::File>
 for more details on the goals, characteristics, and implementation of Setup
 modules family.
-
-=head1 FUNCTIONS
-
-None are exported by default, but they are exportable.
-
-=head2 setup_snippet_with_id(%args) -> [STATUS_CODE, ERR_MSG, RESULT]
-
-
-Setup text snippet (with comment containing ID) in file.
-
-On do, will insert a snippet of text with specified ID to a file, if it doesn't
-already exist. Usually used for inserting tidbits of configuration into
-configuration files.
-
-Snippets are enclosed with comment (shell-style by default, or alternatively
-C++/C-style) giving them ID. Example of one-line snippet:
-
- some text # SNIPPET id=id1
-
-Example of multi-line snippet (using C++-style comment instead of shell-style):
-
- // BEGIN SNIPPET id=id2
- some
- lines
- of
- text
- // END SNIPPET
-
-On undo, will remove the snippet.
-
-Returns a 3-element arrayref. STATUS_CODE is 200 on success, or an error code
-between 3xx-5xx (just like in HTTP). ERR_MSG is a string containing error
-message, RESULT is the actual result.
-
-This function supports undo operation. See L<Sub::Spec::Clause::features> for
-details on how to perform do/undo/redo.
-
-This function supports dry-run (simulation) mode. To run in dry-run mode, add
-argument C<-dry_run> => 1.
-
-Arguments (C<*> denotes required arguments):
-
-=over 4
-
-=item * B<comment_style> => I<str> (default C<"shell">)
-
-Value must be one of:
-
- ["c", "cpp", "html", "shell", "ini"]
-
-
-Comment style.
-
-Snippet is inserted along with comment which contains meta information such as
-snippet ID (so it can be identified and updated/removed later when necessary).
-
-Example of shell-style (shell) comment:
-
- ... # SNIPPET id=...
-
- # BEGIN SNIPPET id=...
- ...
- # END SNIPPET
-
-Example of C-style (c) comment:
-
- .... /* SNIPPET id=... */
-
- /* BEGIN SNIPPET id=... */
- ...
- /* END SNIPPET id=... */
-
-Example of C++-style (cpp) comment:
-
- .... // SNIPPET id=...
-
- // BEGIN SNIPPET id=...
- ...
- // END SNIPPET id=...
-
-Example of SGML-style (html) comment:
-
- .... <!-- SNIPPET id=... -->
-
- <!-- BEGIN SNIPPET id=... -->
- ...
- <!-- END SNIPPET id=... -->
-
-Example of INI-style comment:
-
- .... // SNIPPET id=...
-
- ; BEGIN SNIPPET id=...
- ...
- ; END SNIPPET id=...
-
-=item * B<content>* => I<str>
-
-Snippet text.
-
-String containing text).
-
-=item * B<file>* => I<str>
-
-File name.
-
-File must already exist.
-
-=item * B<good_pattern> => I<str>
-
-Regex pattern which if found means snippet need not be inserted.
-
-=item * B<id>* => I<str>
-
-Snippet ID.
-
-=item * B<label> => I<code|str> (default C<"SNIPPET">)
-
-Comment label.
-
-If label is string (e.g. 'Foo'), then one-line snippet comment will be:
-
- # Foo id=...
-
-and multi-line snippet comment:
-
- # BEGIN Foo id=...
- ...
- # END Foo id=...
-
-If label is coderef, it will be called with named arguments: id, comment_style.
-It must return a hash with these keys: one_line_comment, begin_comment,
-end_comment, one_line_pattern (regex to match snippet content and extract it in
-$1), and multi_line_pattern (regex to match snippet content and extract it in
-$1).
-
-=item * B<replace_pattern> => I<str>
-
-Regex pattern which if found will be used for placement of snippet.
-
-If snippet needs to be inserted into file, then if replace_pattern is defined
-then it will be searched. If found, snippet will be placed to replace the
-pattern. Otherwise, snippet will be inserted at the end (or beginning, see
-top_style) of file.
-
-=item * B<should_exist> => I<bool> (default C<1>)
-
-Whether snippet should exist.
-
-You can set this to false if you want to ensure snippet doesn't exist.
-
-=item * B<top_style> => I<bool> (default C<0>)
-
-Whether to append snippet at beginning of file instead of at the end.
-
-Default is false, which means to append at the end of file.
-
-Note that this only has effect if replace_pattern is not defined or replace
-pattern is not found in file. Otherwise, snippet will be inserted to replace the
-pattern.
-
-=back
 
 =head1 BUGS/TODOS/LIMITATIONS
 

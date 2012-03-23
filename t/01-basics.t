@@ -217,6 +217,68 @@ test_setup_snippet_with_id(
     content    => "1\n2\n3\n",
 );
 
+write_file($f, "1\n2 # SNIPPET id=i\n3\n");
+test_setup_snippet_with_id(
+    name       => "update one-line (with undo)",
+    args       => {file=>$f, id=>"i", content=>"3",
+                   -undo_action=>"do"},
+    status     => 200,
+    content    => "1\n3 # SNIPPET id=i\n3\n",
+    posttest   => sub {
+        my ($res) = @_;
+        $undo_data = $res->[3]{undo_data};
+    },
+);
+test_setup_snippet_with_id(
+    name       => "update one-line (undo)",
+    args       => {file=>$f, id=>"i", content=>"3",
+                   -undo_action=>"undo", -undo_data=>$undo_data},
+    status     => 200,
+    content    => "1\n2 # SNIPPET id=i\n3\n",
+    posttest   => sub {
+        my ($res) = @_;
+        $redo_data = $res->[3]{undo_data};
+    },
+);
+test_setup_snippet_with_id(
+    name       => "update one-line (redo)",
+    args       => {file=>$f, id=>"i", content=>"3",
+                   -undo_action=>"undo", -undo_data=>$redo_data},
+    status     => 200,
+    content    => "1\n3 # SNIPPET id=i\n3\n",
+);
+
+write_file($f, "1\n# BEGIN SNIPPET id=i\n2\n3\n# END SNIPPET id=i\n3\n");
+test_setup_snippet_with_id(
+    name       => "update multi-line (with undo)",
+    args       => {file=>$f, id=>"i", content=>"3\n4\n",
+                   -undo_action=>"do"},
+    status     => 200,
+    content    => "1\n# BEGIN SNIPPET id=i\n3\n4\n# END SNIPPET id=i\n3\n",
+    posttest   => sub {
+        my ($res) = @_;
+        $undo_data = $res->[3]{undo_data};
+    },
+);
+test_setup_snippet_with_id(
+    name       => "update multi-line (undo)",
+    args       => {file=>$f, id=>"i", content=>"3\n4\n",
+                   -undo_action=>"undo", -undo_data=>$undo_data},
+    status     => 200,
+    content    => "1\n# BEGIN SNIPPET id=i\n2\n3\n# END SNIPPET id=i\n3\n",
+    posttest   => sub {
+        my ($res) = @_;
+        $redo_data = $res->[3]{undo_data};
+    },
+);
+test_setup_snippet_with_id(
+    name       => "update multi-line (redo)",
+    args       => {file=>$f, id=>"i", content=>"3\n4\n",
+                   -undo_action=>"undo", -undo_data=>$redo_data},
+    status     => 200,
+    content    => "1\n# BEGIN SNIPPET id=i\n3\n4\n# END SNIPPET id=i\n3\n",
+);
+
 # XXX test: label (coderef)
 
 DONE_TESTING:

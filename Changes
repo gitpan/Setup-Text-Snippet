@@ -1,5 +1,12 @@
 Revision history for Setup-Text-Snippet
 
+0.06    2012-03-23
+
+        [ENHANCEMENTS]
+
+        - Replace/update existing snippet in the original position.
+
+
 0.05    2012-03-02
 
         No functional changes. Replace Sub::Spec with Rinci.
