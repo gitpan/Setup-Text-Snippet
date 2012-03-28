@@ -2,7 +2,7 @@ NAME
     Setup::Text::Snippet - Setup text snippet in a string/file
 
 VERSION
-    version 0.06
+    version 0.07
 
 DESCRIPTION
     Reserved for the general case of Setup::Text::Snippet::WithID.
@@ -11,8 +11,6 @@ DESCRIPTION
 
 SEE ALSO
     Setup::Text::Snippet::WithID
-
-    Other modules in Setup:: namespace.
 
 AUTHOR
     Steven Haryanto <stevenharyanto@gmail.com>

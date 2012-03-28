@@ -7,7 +7,7 @@ use Log::Any '$log';
 
 use File::Slurp;
 
-our $VERSION = '0.06'; # VERSION
+our $VERSION = '0.07'; # VERSION
 
 our %SPEC;
 
@@ -24,7 +24,7 @@ Setup::Text::Snippet - Setup text snippet in a string/file
 
 =head1 VERSION
 
-version 0.06
+version 0.07
 
 =head1 DESCRIPTION
 
@@ -35,8 +35,6 @@ You might want to use Setup::Text::Snippet::WithID for now.
 =head1 SEE ALSO
 
 L<Setup::Text::Snippet::WithID>
-
-Other modules in Setup:: namespace.
 
 =head1 AUTHOR
 
