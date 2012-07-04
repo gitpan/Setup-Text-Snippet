@@ -86,7 +86,7 @@ test_setup_snippet_with_id(
     args          => {file=>$f, id=>"i", content=>"x\ny", comment_style=>'ini',
                       top_style=>1},
     check_unsetup => {content => "1\n2"},
-    check_setup   => {content => "; BEGIN SNIPPET id=i\nx\n\y\n".
+    check_setup   => {content => "; BEGIN SNIPPET id=i\nx\ny\n".
                           "; END SNIPPET id=i\n1\n2"},
 );
 test_setup_snippet_with_id(
@@ -105,7 +105,7 @@ test_setup_snippet_with_id(
     prepare       => sub { unlink $f },
     args          => {file=>$f, id=>"i", content=>"x", should_exist=>1},
     check_unsetup => {exists => 0},
-    dry_do_error  => 500,
+    do_error      => 500,
 );
 test_setup_snippet_with_id(
     name          => "file doesn't exist, should_exist=>0",
@@ -167,7 +167,6 @@ test_setup_snippet_with_id(
                           "1\n# BEGIN SNIPPET id=i\n3\n4\n".
                               "# END SNIPPET id=i\n3\n"},
 );
-goto DONE_TESTING;
 
 # XXX test: label (coderef)
 

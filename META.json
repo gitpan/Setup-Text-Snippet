@@ -1,0 +1,53 @@
+{
+   "abstract" : "Setup text snippet in a string/file",
+   "author" : [
+      "Steven Haryanto <stevenharyanto@gmail.com>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Dist::Zilla version 4.300006, CPAN::Meta::Converter version 2.113640",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Setup-Text-Snippet",
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "Module::Build" : "0.3601"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "Module::Build" : "0.3601"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "File::Slurp" : 0,
+            "Log::Any" : 0,
+            "Perinci::Sub::Gen::Undoable" : "0.12",
+            "Rinci" : "v1.1.0",
+            "Setup" : "v1.0.0",
+            "perl" : "5.010000"
+         }
+      },
+      "test" : {
+         "requires" : {
+            "Test::More" : "0.96",
+            "Test::Setup" : 0
+         }
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "homepage" : "http://search.cpan.org/dist/Setup-Text-Snippet/",
+      "repository" : {
+         "url" : "http://github.com/sharyanto/perl-Setup-Text-Snippet"
+      }
+   },
+   "version" : "0.08"
+}
+
